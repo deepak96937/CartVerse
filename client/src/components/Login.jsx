@@ -1,13 +1,50 @@
 import React from "react";
 import { useAppContext } from "../context/AppContext";
+import toast from "react-hot-toast";
 
 const Login = () => {
-  const { setShowUserLogin } = useAppContext();
+  const context = useAppContext();
+
+  // Added fallback checks for context values
+  const setShowUserLogin = context?.setShowUserLogin ?? (() => {});
+  const setUser = context?.setUser ?? (() => {});
+  const axios = context?.axios;
+  const navigate = context?.navigate ?? (() => {});
 
   const [state, setState] = React.useState("login");
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+
+  const onSubmitHandler = async (event) => {
+    try {
+      event.preventDefault();
+
+      // Ensure axios exists
+      if (!axios) {
+        toast.error("Network service is unavailable.");
+        return;
+      }
+
+      const { data } = await axios.post(`/api/user/${state}`, {
+        name,
+        email,
+        password,
+      });
+
+      console.log(data);
+
+      if (data?.success) {
+        navigate("/");
+        setUser(data.user);
+        setShowUserLogin(false);
+      } else {
+        toast.error(data?.message || "Something went wrong.");
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || error.message || "Error occurred");
+    }
+  };
 
   return (
     <div
@@ -15,6 +52,7 @@ const Login = () => {
       className=" fixed top-0 bottom-0 left-0 right-0 z-30 flex items-center text-sm text-gray-600 bg-black/50"
     >
       <form
+        onSubmit={onSubmitHandler}
         onClick={(e) => e.stopPropagation()}
         className="flex flex-col gap-4 m-auto items-start p-8 py-12 w-80 sm:w-[352px] rounded-lg shadow-xl border border-gray-200 bg-white"
       >
