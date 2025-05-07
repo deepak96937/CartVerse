@@ -79,7 +79,7 @@ const port = process.env.PORT || 4000;
 // Connect to services
 (async () => {
   try {
-    await connectDB();
+   
     await connectCloudinary();
 
     // Stripe webhook endpoint (must come before express.json)
@@ -110,6 +110,7 @@ const port = process.env.PORT || 4000;
 
     // Start the server
     app.listen(port, () => {
+        connectDB();
       console.log(`✅ Server is running on http://localhost:${port}`);
     });
   } catch (err) {
